@@ -1,9 +1,6 @@
-package org.hobby.storage.limado;
+package org.hobby.limado.storage;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,15 +28,17 @@ public class StorageIndex {
         } catch (Exception ex){}
     }
 
-    public void init(final String indexFilePath) throws Exception  {
+    public void init(final String indexFilePath) throws Exception {
         this.indexFilePath = indexFilePath;
         Path indexFile = Paths.get(indexFilePath);
         if (Files.exists(indexFile)){
             try(FileInputStream fileInputStream = new FileInputStream(indexFilePath);
                 ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);){
                 this.offsetIndex = (HashMap)objectInputStream.readObject();
-            } catch (Exception ex){
+            } catch (IOException ex){
                 throw ex;
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
             }
         } else {
             this.offsetIndex = new HashMap<>();

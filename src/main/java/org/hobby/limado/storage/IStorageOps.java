@@ -1,4 +1,4 @@
-package org.hobby.storage.limado;
+package org.hobby.limado.storage;
 
 public interface IStorageOps<K,V> {
     int write(K key, V value) throws Exception;

@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.hobby.storage</groupId>
-    <artifactId>org.hobby.storage.limado</artifactId>
+    <groupId>org.hobby</groupId>
+    <artifactId>org.hobby.limado</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>

@@ -1,5 +1,6 @@
-package org.hobby.storage.limado;
+package org.hobby.limado.storage;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
@@ -25,7 +26,7 @@ public class StorageRead {
         } catch (Exception ex){}
     }
 
-    public void init(final String storageFilePath) throws Exception  {
+    public void init(final String storageFilePath) throws IOException {
         this.storageFilePath = storageFilePath;
         Path dataFile = Paths.get(this.storageFilePath);
         Set<OpenOption> readerOption = new HashSet<>();
@@ -35,7 +36,7 @@ public class StorageRead {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> StorageRead.getInstance().stop()));
     }
 
-    public String read(int tPointer) throws Exception {
+    public String read(int tPointer) throws IOException {
         ByteBuffer lengthBuffer = ByteBuffer.allocate(Integer.BYTES);
         this.reader.read(lengthBuffer, tPointer);
         lengthBuffer.rewind();

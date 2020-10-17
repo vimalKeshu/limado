@@ -1,4 +1,4 @@
-package org.hobby.storage.limado;
+package org.hobby.limado.storage;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -37,7 +37,7 @@ public class StorageWrite {
         return (int) this.writer.size();
     }
 
-    public int write(String key, String value, int pointer) throws Exception {
+    public int write(String key, String value, int pointer) throws IOException {
         byte []val = value.getBytes(StandardCharsets.UTF_8);
         ByteBuffer sizeBuffer = ByteBuffer.allocate(Integer.BYTES).putInt(val.length);
         sizeBuffer.rewind();
