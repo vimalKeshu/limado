@@ -1,5 +1,8 @@
 package org.hobby.limado.storage;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class StorageIndex {
+    private static final Logger logger = LogManager.getLogger(StorageIndex.class);
     private static StorageIndex newInstance = new StorageIndex();
     private String indexFilePath;
     private Map<String, Integer> offsetIndex;
@@ -35,6 +39,9 @@ public class StorageIndex {
             try(FileInputStream fileInputStream = new FileInputStream(indexFilePath);
                 ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);){
                 this.offsetIndex = (HashMap)objectInputStream.readObject();
+                if (logger.isDebugEnabled()){
+                    printIndex();
+                }
             } catch (IOException ex){
                 throw ex;
             } catch (ClassNotFoundException e) {
@@ -54,5 +61,10 @@ public class StorageIndex {
         Objects.requireNonNull(key, "Key should not be null.");
         Objects.requireNonNull(index, "Index should not be null.");
         this.offsetIndex.put(key, index);
+        logger.debug(String.format("Key:%s, Index:%d",key, index));
+    }
+
+    public void printIndex() {
+        for (Map.Entry<String,Integer> record: this.offsetIndex.entrySet()) logger.debug(String.format("Key: %s , Value: %d",record.getKey(),record.getValue()));
     }
 }

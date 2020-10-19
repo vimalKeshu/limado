@@ -1,5 +1,8 @@
 package org.hobby.limado.network;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hobby.limado.storage.StorageOps;
 
 import java.io.IOException;
@@ -15,6 +18,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public class DataRead {
+    private static final Logger logger = LogManager.getLogger(DataRead.class);
     private static DataRead newInstance = new DataRead();
     private static String HOST = "localhost";
     private static int PORT = 5454;
@@ -33,20 +37,22 @@ public class DataRead {
         this.serverSocket.register(selector, SelectionKey.OP_ACCEPT);
         //Runtime.getRuntime().addShutdownHook(new Thread(() -> DataRead.getInstance().stop()));
 
+        logger.info(String.format("Storage server started listening at %s:%d for data read.",HOST,PORT));
+
         while (true) {
             int channels = this.selector.select();
            // if (channels <= 0) return;
-            Set<SelectionKey> selectionKeys = this.selector.keys();
-            Iterator<SelectionKey> iterator = selectionKeys.iterator();
+            Iterator<SelectionKey> iterator = this.selector.selectedKeys().iterator();
             while (iterator.hasNext()) {
                 SelectionKey key = iterator.next();
                 if (key.isAcceptable()){
                     this.registerChannel(this.selector, this.serverSocket);
+                    logger.warn("Accepted the connection..");
                 }
                 if (key.isReadable()){
                     handleRequest(key);
                 }
-                iterator.remove();
+               iterator.remove();
             }
         }
     }
@@ -59,21 +65,33 @@ public class DataRead {
     }
 
     private void handleRequest(SelectionKey key) throws IOException {
+        logger.debug("Fetching the data..");
         SocketChannel socketChannel = (SocketChannel) key.channel();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(1024);
-        StringBuilder stringBuilder = new StringBuilder();
-        while (socketChannel.read(byteBuffer) >=0) {
-            byteBuffer.flip();
-            stringBuilder.append(byteBuffer.array().toString());
-            byteBuffer.clear();
-            byteBuffer.rewind();
+        Objects.requireNonNull(socketChannel, "Socket channel can not be null.");
+        try {
+            ByteBuffer byteBuffer = ByteBuffer.allocate(1);
+            StringBuilder stringBuilder = new StringBuilder();
+            while (socketChannel.read(byteBuffer) > 0) {
+                byteBuffer.flip();
+                stringBuilder.append(new String(byteBuffer.array()));
+                byteBuffer.clear();
+            }
+            logger.debug("Key: "+stringBuilder.toString());
+            String value = StorageOps.getInstance().read(stringBuilder.toString().trim());
+            if (value != null){
+                ByteBuffer data = ByteBuffer.wrap(value.getBytes(StandardCharsets.UTF_8));
+                socketChannel.write(data);
+            } else socketChannel.write(ByteBuffer.wrap("404".getBytes(StandardCharsets.UTF_8)));
+        } catch (IOException ex){
+            logger.error(ExceptionUtils.getStackTrace(ex));
+            throw ex;
+        } catch (Exception ex){
+            logger.error(ExceptionUtils.getStackTrace(ex));
+            //throw ex;
+            socketChannel.write(ByteBuffer.wrap("500".getBytes(StandardCharsets.UTF_8)));
+        } finally {
+            socketChannel.close();
         }
-        System.out.println("Key: "+stringBuilder.toString());
-        String value = StorageOps.getInstance().read(stringBuilder.toString());
-        if (value != null){
-            ByteBuffer data = ByteBuffer.wrap(value.getBytes(StandardCharsets.UTF_8));
-            socketChannel.write(data);
-        } else socketChannel.write(ByteBuffer.wrap("404".getBytes(StandardCharsets.UTF_8)));
     }
 
     private void registerChannel(Selector selector, ServerSocketChannel serverSocket) throws IOException {

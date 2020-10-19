@@ -1,5 +1,8 @@
 package org.hobby.limado.storage;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -7,11 +10,9 @@ import java.nio.file.*;
 import java.util.*;
 
 public class StorageRead {
+    private static final Logger logger = LogManager.getLogger(StorageRead.class);
     private static StorageRead newInstance = new StorageRead();
-    private static String INDEX_FILE_NAME = "index.ser";
-    private static String DATA_FILE_NAME = "data.ser";
     private String storageFilePath;
-    private int pointer;
     private FileChannel reader;
 
 
@@ -42,10 +43,11 @@ public class StorageRead {
         lengthBuffer.rewind();
         int size = lengthBuffer.getInt();
 
+
         ByteBuffer valueBuffer = ByteBuffer.allocate(size);
         this.reader.read(valueBuffer, tPointer + Integer.BYTES + 1);
-        valueBuffer.rewind();
-        return new String(valueBuffer.array());
+        valueBuffer.flip();
+        return new String(valueBuffer.array()).trim();
     }
 
 }

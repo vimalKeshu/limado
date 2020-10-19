@@ -13,22 +13,27 @@ public class AppMain {
     public static void main(String[] args) throws Exception{
         StorageOps.getInstance().init("C:\\Users\\vc8342\\data");
         DataOps.getInstance().start();
+        String key = "10";
+        String value = "xyz abc llll";
 
-        //writeTest();
-        readTest();
+        writeTest(key, value);
+        readTest(key);
+
+
+
 
     }
 
-    private static void readTest() throws IOException {
+    private static void readTest(String key) throws IOException {
         SocketChannel client = SocketChannel.open(new InetSocketAddress("localhost", 5454));
-        client.write(ByteBuffer.wrap("1".getBytes(StandardCharsets.UTF_8)));
-        System.out.println("Key: 1"+", Value: "+handleResponse(client));
+        client.write(ByteBuffer.wrap(key.getBytes(StandardCharsets.UTF_8)));
+        System.out.println(String.format("Key: %s, Value: %s", key, handleResponse(client)));
     }
 
-    private static void writeTest() throws IOException {
+    private static void writeTest(String key, String value) throws IOException {
         SocketChannel client = SocketChannel.open(new InetSocketAddress("localhost", 5455));
-        client.write(ByteBuffer.wrap("10:xyz abc".getBytes(StandardCharsets.UTF_8)));
-        System.out.println("Key: 1"+", Value: "+handleResponse(client));
+        client.write(ByteBuffer.wrap((String.format("%s:%s",key,value)).getBytes(StandardCharsets.UTF_8)));
+        System.out.println(String.format("Key:%s",key)+", Value: "+handleResponse(client));
     }
 
     private static String handleResponse(SocketChannel socketChannel) throws IOException {
@@ -36,9 +41,8 @@ public class AppMain {
         StringBuilder stringBuilder = new StringBuilder();
         while (socketChannel.read(byteBuffer) >=0) {
             byteBuffer.flip();
-            stringBuilder.append(byteBuffer.array().toString());
+            stringBuilder.append(new String(byteBuffer.array()));
             byteBuffer.clear();
-            byteBuffer.rewind();
         }
         return stringBuilder.toString();
     }

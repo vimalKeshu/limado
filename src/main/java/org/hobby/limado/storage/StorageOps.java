@@ -1,10 +1,14 @@
 package org.hobby.limado.storage;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
 public class StorageOps {
+    private static final Logger logger = LogManager.getLogger(StorageOps.class);
     private static StorageOps newInstance = new StorageOps();
     private static final String INDEX_FILE_NAME = "index.ser";
     private static final String DATA_FILE_NAME = "data.ser";
@@ -30,12 +34,15 @@ public class StorageOps {
     public void write(String key, String value) throws IOException {
         int pointer = StorageWrite.getInstance().getFileSize();
         int tPointer = StorageWrite.getInstance().write(key, value, pointer);
-        StorageIndex.getInstance().storeIndex(key, tPointer);
+        StorageIndex.getInstance().storeIndex(key, pointer);
     }
 
     public String read(String key) throws IOException {
         Integer pointer = StorageIndex.getInstance().getIndex(key);
-        if (pointer == null) return  null;
-        else  return StorageRead.getInstance().read(pointer);
+        String value = null;
+        if (pointer != null) value = StorageRead.getInstance().read(pointer);
+        logger.debug(String.format("Index:%d, Value:%s",pointer, value));
+        StorageIndex.getInstance().printIndex();
+        return value;
     }
 }

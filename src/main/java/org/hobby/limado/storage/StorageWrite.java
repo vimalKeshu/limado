@@ -1,5 +1,8 @@
 package org.hobby.limado.storage;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -8,6 +11,7 @@ import java.nio.file.*;
 import java.util.*;
 
 public class StorageWrite {
+    private static final Logger logger = LogManager.getLogger(StorageWrite.class);
     private static StorageWrite newInstance = new StorageWrite();
     private String storageFilePath;
     private FileChannel writer;
@@ -49,6 +53,7 @@ public class StorageWrite {
         this.writer.write(byteBuffer, pointer);
         pointer += val.length + 1;
 
+        logger.debug(String.format("Key:%s , Value:%s, File Pointer:%d",key,value,pointer));
         return pointer;
     }
 
